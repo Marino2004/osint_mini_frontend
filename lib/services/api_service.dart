@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/search_result.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.226.250:8000/search/";
+  static const String baseUrl = "http://192.168.247.250:8000/search/";
 
   Future<SearchResult?> fetchSearchResults(String query, String filetype) async {
     final uri = Uri.parse("$baseUrl?query=$query&filetype=$filetype");
