@@ -1,30 +1,58 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../models/search_result.dart';
 import '../widgets/custom_radio_button.dart';
+import '../widgets/result_list.dart';
 
-class SearchPage extends StatelessWidget {
+class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
+
+  @override
+  _SearchPageState createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  final TextEditingController _queryController = TextEditingController();
+  String selectedFileType = "txt"; // Par défaut
+  SearchResult? searchResult;
+  bool isLoading = false;
+
+  final ApiService apiService = ApiService();
+
+  void _performSearch() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final result = await apiService.fetchSearchResults(_queryController.text, selectedFileType);
+
+    setState(() {
+      searchResult = result;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          forceMaterialTransparency: true,
-          leading: IconButton(
-            icon: const Icon(Icons.search, size: 35),
-            onPressed: () {},
-          ),
-          actions: const [
-            Text(
-              "Osint Lite  ",
-              style: TextStyle(
-                  fontSize: 40,
-                  fontFamily: "Billabong",
-                  fontWeight: FontWeight.bold),
-            ),
-          ],
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        leading: IconButton(
+          icon: const Icon(Icons.search, size: 35),
+          onPressed: () {},
         ),
-        resizeToAvoidBottomInset: false,
-        body: Column(
+        actions: const [
+          Text(
+            "Osint Lite  ",
+            style: TextStyle(
+                fontSize: 40,
+                fontFamily: "Billabong",
+                fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      resizeToAvoidBottomInset: false,
+      body:Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
@@ -71,7 +99,7 @@ class SearchPage extends StatelessWidget {
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.search,
                           color: Colors.grey), // Icône à droite
-                      onPressed: () {},
+                      onPressed: _performSearch,
                     )),
               ),
             ),
@@ -100,8 +128,21 @@ class SearchPage extends StatelessWidget {
                 ],
               ),
             ),
-            const CustomRadioButton(),
+            CustomRadioButton(
+              onChanged: (value) {
+                setState(() {
+                  selectedFileType = value;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : searchResult != null
+                    ? Expanded(child: ResultList(results: searchResult!.results))
+                    : const SizedBox.shrink(),
           ],
-        ));
+        ),
+      );
   }
 }

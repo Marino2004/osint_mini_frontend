@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 
 class CustomRadioButton extends StatefulWidget {
-  const CustomRadioButton({super.key});
+  final Function(String) onChanged;
+
+  const CustomRadioButton({super.key, required this.onChanged});
 
   @override
-  _CustomRadioButtonState createState() => _CustomRadioButtonState();
+  State<CustomRadioButton> createState() => _CustomRadioButtonState();
 }
 
 class _CustomRadioButtonState extends State<CustomRadioButton> {
   String? _selectedFormat;
+  final List<_RadioOption> _options = const [
+    _RadioOption("PDF", Icons.picture_as_pdf),
+    _RadioOption("DOCX", Icons.article),
+    _RadioOption("TXT", Icons.text_snippet),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildRadioTile("PDF", Icons.picture_as_pdf),
-        _buildRadioTile("DOCX", Icons.article),
-        _buildRadioTile("TXT", Icons.text_snippet),
+        ..._options.map((option) => _buildRadioTile(option)),
         _buildSendButton(),
       ],
     );
   }
 
-  Widget _buildRadioTile(String value, IconData icon) {
+  Widget _buildRadioTile(_RadioOption option) {
+    bool isSelected = _selectedFormat == option.value;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
       child: Container(
@@ -31,29 +37,29 @@ class _CustomRadioButtonState extends State<CustomRadioButton> {
           color: Colors.grey[900],
           borderRadius: BorderRadius.circular(15.0),
           border: Border.all(
-            color: _selectedFormat == value ? Colors.blue : Colors.grey[700]!,
-            width: 1.5,
+            color: isSelected ? Colors.blue : Colors.grey[700]!,
+            width: isSelected ? 2.0 : 1.5,
           ),
         ),
         child: RadioListTile<String>(
           title: Row(
             children: [
-              Icon(icon, color: Colors.white),
+              Icon(option.icon, color: Colors.white),
               const SizedBox(width: 10),
               Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+                option.value,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ],
           ),
-          value: value,
+          value: option.value,
           groupValue: _selectedFormat,
           onChanged: (String? newValue) {
-            setState(() {
-              _selectedFormat = newValue;
-            });
+            setState(() => _selectedFormat = newValue);
+            if (newValue != null) widget.onChanged(newValue);
           },
-          activeColor: Colors.grey,
+          activeColor: Colors.blue,
           controlAffinity: ListTileControlAffinity.trailing,
         ),
       ),
@@ -73,14 +79,25 @@ class _CustomRadioButtonState extends State<CustomRadioButton> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 15.0),
           ),
-          onPressed: () {},
-          child: const Text(
+          onPressed: _selectedFormat != null ? () => widget.onChanged(_selectedFormat!) : null,
+          child: Text(
             "Envoyer",
-            style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: _selectedFormat != null ? Colors.black : Colors.grey,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
             textAlign: TextAlign.center,
           ),
         ),
       ),
     );
   }
+}
+
+class _RadioOption {
+  final String value;
+  final IconData icon;
+
+  const _RadioOption(this.value, this.icon);
 }
